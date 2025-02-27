@@ -14,11 +14,11 @@ import jsbh.Jusangbokhap.api.accommodation.dto.AccommodationCoordSearchResponse;
 import jsbh.Jusangbokhap.api.accommodation.dto.AccommodationRequest;
 import jsbh.Jusangbokhap.api.accommodation.dto.AccommodationResponse;
 import jsbh.Jusangbokhap.api.accommodation.dto.AccommodationResponse.Search;
-import jsbh.Jusangbokhap.api.accommodation.mapper.AccommodationMapper;
 import jsbh.Jusangbokhap.domain.accommodation.Accommodation;
 import jsbh.Jusangbokhap.domain.accommodation.AccommodationType;
 import jsbh.Jusangbokhap.domain.accommodation.QAccommodation;
 import jsbh.Jusangbokhap.domain.accommodation.repository.AccommodationRepository;
+import jsbh.Jusangbokhap.domain.availableDate.QAvailableDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -53,10 +53,20 @@ public class AccommodationGuestService {
 
     public List<AccommodationCoordSearchResponse> findByCoordinate(AccommodationCoordSearchRequest coordSearchRequest) {
 
+        Double radius = coordSearchRequest.getRadius();
+
+        // 반경을 최대 50km 까지만 가능하게 만듦. radius 는 m 단위로 옴.
+        if (radius > 50000d) {
+            radius = 50000d;
+        }
+
+        // convert meters To latitude degree -> 공식: 도(°) = 미터(m) / 111000
+        Double radiusToLatDegree = radius / 111_000;
+
         List<Accommodation> accommodations =
                 accommodationRepository.findAccommodationByCoordinate(coordSearchRequest.getLongitude(),
                         coordSearchRequest.getLatitude(),
-                        coordSearchRequest.getRadius(),
+                        radiusToLatDegree,
                         coordSearchRequest.getLastAccommodationId(),
                         10);
 
@@ -96,8 +106,10 @@ public class AccommodationGuestService {
 
     private BooleanBuilder filterByDate(BooleanBuilder builder, LocalDate checkin, LocalDate checkout) {
         if (checkin != null && checkout != null) {
-            builder.and(QAccommodation.accommodation.availableDates.any().checkin.loe(checkin));
-            builder.and(QAccommodation.accommodation.availableDates.any().checkout.goe(checkout));
+            QAvailableDate availableDate = QAvailableDate.availableDate;
+
+            builder.and(availableDate.checkin.loe(checkin));
+            builder.and(availableDate.checkout.goe(checkout));
         }
         return builder;
     }

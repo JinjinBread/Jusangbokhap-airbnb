@@ -1,0 +1,32 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+participant "사용자" as User
+participant "백엔드 서버" as Backend
+participant "카카오페이 API" as KakaoPay
+
+User -> Backend: 결제 요청 (/payments/request)
+Backend -> KakaoPay: 결제 준비 요청 (/v1/payment/ready)
+KakaoPay -> Backend: 결제 정보 응답 (tid, 결제 URL)
+Backend -> User: 결제 URL 반환
+
+User -> KakaoPay: 결제 진행
+KakaoPay -> User: 결제 완료 후 pg_token 반환
+
+User -> Backend: 결제 승인 요청 (/payments/approve)
+Backend -> KakaoPay: 결제 승인 요청 (/v1/payment/approve)
+KakaoPay -> Backend: 결제 승인 응답 (결제 완료)
+Backend -> DB: 결제 상태 업데이트 (COMPLETED)
+Backend -> DB: 예약 상태 업데이트 (CONFIRMED)
+Backend -> User: 결제 완료 응답
+
+User -> Backend: 예약 취소 요청 (/reservations/cancel)
+Backend -> DB: 결제 정보 조회 (tid 확인)
+Backend -> KakaoPay: 결제 취소 요청 (/v1/payment/cancel)
+KakaoPay -> Backend: 결제 취소 응답 (CANCELED)
+Backend -> DB: 결제 상태 업데이트 (CANCELED)
+Backend -> DB: 예약 상태 업데이트 (CANCELED)
+Backend -> User: 예약 취소 완료 응답
+@enduml

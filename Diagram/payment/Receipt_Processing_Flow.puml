@@ -1,0 +1,36 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor User
+participant "PaymentController" as PC
+participant "KakaoPayService" as KPS
+participant "KakaoPay API" as KPA
+participant "ReceiptService" as RS
+participant "ReceiptRepository" as RR
+participant "PaymentRepository" as PR
+
+== 결제 완료 시 영수증 발급 ==
+User -> PC: 결제 요청
+PC -> KPS: 카카오페이 결제 승인 요청
+KPS -> KPA: 결제 승인 요청
+KPA -> KPS: 결제 승인 응답
+KPS -> RS: 영수증 발급 요청
+RS -> RR: 영수증 저장
+RS -> PR: 결제 정보 업데이트
+
+== 결제 취소 시 영수증 발급 ==
+User -> PC: 결제 취소 요청
+PC -> KPS: 카카오페이 결제 취소 요청
+KPS -> KPA: 결제 취소 요청
+KPA -> KPS: 결제 취소 응답
+KPS -> RS: 취소된 영수증 발급 요청
+RS -> RR: 취소된 영수증 저장
+
+== 매출전표(영수증) 조회 ==
+User -> RS: 숙소의 매출전표 조회 요청
+RS -> RR: 영수증 데이터 조회
+RR -> RS: 영수증 목록 반환
+RS -> User: 영수증 정보 응답
+@enduml

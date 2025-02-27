@@ -1,0 +1,20 @@
+@startuml
+!include <elastic/common>
+
+autonumber
+
+title Scheduler Sequence Diagram
+
+participant Server
+database PostgreSQL
+database Redis
+database ElasticSearch
+
+Server -> ElasticSearch: Update Top 10 Search Keywords (scheduler)
+ElasticSearch --> Server: Response Top 10 Search Keywords
+
+Server -> Redis: Store Top 10 Search Keywords cache
+Server -> PostgreSQL: Store top 10 Search Keywords permanently
+
+'ElasticSearch -right-> Kibana: Data to View
+@enduml

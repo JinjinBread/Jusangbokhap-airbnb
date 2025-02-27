@@ -59,8 +59,10 @@ public class AccommodationRepository {
                                                              Long lastAccommodationId, int pageSize) {
 
         String query = "SELECT a.* FROM accommodation a" +
-                " JOIN accommodation_address ad ON a.accommodation_address_id = ad.accommodation_address_id" +
-                " WHERE ST_DWithin(ad.coordinate, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :radius, true)";
+                " JOIN (SELECT accommodation_address_id"+
+                " FROM accommodation_address" +
+                " WHERE ST_DWithin(coordinate, ST_SetSRID(ST_MakePoint(:longitude, :latitude), 4326), :radius)) ad" +
+                " ON a.accommodation_address_id = ad.accommodation_address_id";
 
         // 처음 조회하는 게 아니라면
         if (lastAccommodationId != null) {

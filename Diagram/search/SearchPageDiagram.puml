@@ -1,0 +1,18 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+title Get Top search-keywords Sequence Diagram
+
+participant Client
+participant Server
+database Redis
+
+Client -> Server: GET /search
+Server -> Redis: Request Top 10 Search Keywords
+
+Redis --> Server: Response Top 10 Search Keywords (cache)
+Server --> Client: Response Top 10 Search Keywords
+
+@enduml

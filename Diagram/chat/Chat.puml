@@ -1,0 +1,29 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+
+actor "User A" as UA
+participant "WebSocket Server" as WS
+database "MongoDB" as DB
+actor "User B" as UB
+
+UA -> WS: WebSocket 연결 요청
+WS -> WS: 사용자 ID 저장 (Sessions Map)
+
+UA -> WS: 채팅 메시지 전송
+WS -> WS: 채팅방 조회 or 생성
+WS -> DB: 메시지 저장
+DB --> WS: 저장 완료
+
+WS -> WS: 상대방 세션 확인
+alt 상대방이 온라인일 경우
+    WS -> UB: 메시지 전달 (WebSocket)
+    UB -> UB: 메시지 표시
+else 상대방이 오프라인일 경우
+    WS -> DB: 메시지 오프라인 저장
+end
+
+UA -> WS: WebSocket 연결 종료
+WS -> WS: 사용자 세션 제거
+@enduml
